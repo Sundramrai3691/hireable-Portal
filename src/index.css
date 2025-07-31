@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hireable Job Portal Design System */
+
+@layer base {
+  :root {
+    /* Core Brand Colors */
+    --primary: 208 100% 24%;        /* Deep Professional Blue #1D3557 */
+    --primary-foreground: 180 33% 97%;  /* Light Off-White #F1FAEE */
+    --secondary: 354 71% 56%;       /* Coral Red #E63946 */
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Neutral Backgrounds */
+    --background: 220 14% 11%;      /* Dark Background #1a1f25 */
+    --foreground: 180 33% 97%;      /* Light Text #F1FAEE */
+    --muted: 220 9% 20%;           /* Muted Dark #2f3439 */
+    --muted-foreground: 185 25% 70%; /* Muted Teal #A8DADC */
+    
+    /* Card & Surface Colors */
+    --card: 220 14% 11%;           /* Same as background */
+    --card-foreground: 180 33% 97%;
+    --popover: 220 14% 16%;        /* Slightly lighter for popovers */
+    --popover-foreground: 180 33% 97%;
+    
+    /* Interactive Elements */
+    --accent: 185 25% 70%;         /* Muted Teal for accents #A8DADC */
+    --accent-foreground: 220 14% 11%;
+    --border: 220 13% 18%;         /* Subtle borders */
+    --input: 220 13% 18%;          /* Input backgrounds */
+    --ring: 208 100% 50%;          /* Focus rings */
+    
+    /* Status Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;        /* Green for success */
+    --success-foreground: 0 0% 100%;
+    --warning: 48 96% 53%;         /* Yellow for warnings */
+    --warning-foreground: 220 14% 11%;
+    
+    /* Glass & Gradient Effects */
+    --glass-bg: 220 14% 11% / 0.8;  /* Semi-transparent background */
+    --glass-border: 0 0% 100% / 0.1; /* Subtle white border */
+    --gradient-primary: linear-gradient(135deg, hsl(208 100% 24%), hsl(208 100% 34%));
+    --gradient-secondary: linear-gradient(135deg, hsl(354 71% 56%), hsl(354 71% 66%));
+    --gradient-hero: linear-gradient(135deg, hsl(208 100% 40%), hsl(270 75% 50%));
+    --gradient-bg: linear-gradient(135deg, hsl(220 14% 11%), hsl(220 20% 8%));
+    
+    /* Shadows */
+    --shadow-glass: 0 8px 32px hsl(208 100% 24% / 0.3);
+    --shadow-card: 0 4px 16px hsl(220 14% 4% / 0.4);
+    --shadow-button: 0 2px 8px hsl(208 100% 24% / 0.2);
+    
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  /* Light mode (optional override) */
+  .light {
+    --background: 180 33% 97%;      /* Light Off-White #F1FAEE */
+    --foreground: 220 14% 11%;      /* Dark text */
+    --muted: 185 25% 90%;          /* Light muted */
+    --muted-foreground: 220 14% 25%;
+    --card: 0 0% 100%;             /* Pure white cards */
+    --border: 220 13% 85%;         /* Light borders */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter;
+    background: var(--gradient-bg);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Glass morphism utility classes */
+  .glass-card {
+    @apply backdrop-blur-md border rounded-xl;
+    background: hsl(var(--glass-bg));
+    border-color: hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+  }
+  
+  .glass-nav {
+    @apply backdrop-blur-lg border-b;
+    background: hsl(var(--glass-bg));
+    border-color: hsl(var(--glass-border));
+  }
+  
+  /* Gradient text utilities */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-hero);
+  }
+  
+  .gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+  
+  .gradient-secondary {
+    background-image: var(--gradient-secondary);
+  }
+  
+  /* Button enhancements */
+  .btn-glass {
+    @apply glass-card hover:scale-105 active:scale-95 transition-all duration-200;
+    box-shadow: var(--shadow-button);
+  }
+  
+  /* Custom animations */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+}
+
+@layer utilities {
+  /* Custom hover effects */
+  .hover-lift {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-2xl;
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
+  }
+}
+
+/* Custom animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+  to { box-shadow: 0 0 30px hsl(var(--primary) / 0.6); }
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Google",
+    "logo": "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=120&h=60&fit=crop&crop=center"
+  },
+  {
+    "name": "Microsoft",
+    "logo": "https://images.unsplash.com/photo-1618044733300-9472054094ee?w=120&h=60&fit=crop&crop=center"
+  },
+  {
+    "name": "Apple",
+    "logo": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=120&h=60&fit=crop&crop=center"
+  },
+  {
+    "name": "Amazon",
+    "logo": "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=120&h=60&fit=crop&crop=center"
+  },
+  {
+    "name": "Meta",
+    "logo": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=120&h=60&fit=crop&crop=center"
+  },
+  {
+    "name": "Netflix",
+    "logo": "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=120&h=60&fit=crop&crop=center"
+  },
+  {
+    "name": "Tesla",
+    "logo": "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=120&h=60&fit=crop&crop=center"
+  },
+  {
+    "name": "Spotify",
+    "logo": "https://images.unsplash.com/photo-1611348586804-61bf6c080437?w=120&h=60&fit=crop&crop=center"
+  }
+]

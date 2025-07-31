@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "question": "How do I apply for a job?",
+    "answer": "Click on any job card and hit 'Apply Now' to start the process. You'll be able to submit your application with your resume and cover letter."
+  },
+  {
+    "id": 2,
+    "question": "Is Hireable free to use?",
+    "answer": "Yes! Hireable is completely free for job seekers. You can search, filter, and apply to unlimited jobs without any cost."
+  },
+  {
+    "id": 3,
+    "question": "How often are new jobs posted?",
+    "answer": "New jobs are posted daily by our partner companies. We recommend checking back regularly or setting up job alerts to never miss an opportunity."
+  },
+  {
+    "id": 4,
+    "question": "Can I post a job for my company?",
+    "answer": "Absolutely! Use our 'Post Job' feature to reach thousands of qualified candidates. Simply fill out the job details and your posting will go live immediately."
+  },
+  {
+    "id": 5,
+    "question": "Do you support remote work opportunities?",
+    "answer": "Yes! We have a dedicated filter for remote work. Many of our top companies offer fully remote positions across various industries and skill levels."
+  },
+  {
+    "id": 6,
+    "question": "How do I filter jobs by salary range?",
+    "answer": "Use our advanced filters to specify your desired salary range, job type, location, and required skills. This helps you find positions that match your expectations."
+  }
+]
