@@ -9,6 +9,10 @@ const jobSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  companyLogo: {
+    type: String,
+    default: null,
+  },
   location: {
     type: String,
     required: true,
