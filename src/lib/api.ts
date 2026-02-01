@@ -138,10 +138,23 @@ class ApiClient {
     return response.json();
   }
 
-  async applyToJob(jobId: string): Promise<void> {
+  async applyToJob(jobId: string, payload?: {
+    applicantName?: string;
+    phone?: string;
+    college?: string | null;
+    graduationYear?: number | null;
+    resumeUrl?: string;
+  }): Promise<void> {
+    const headers: Record<string, string> = {
+      ...this.getAuthHeader() as Record<string, string>,
+    };
+    if (payload) {
+      headers['Content-Type'] = 'application/json';
+    }
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/apply`, {
       method: 'POST',
-      headers: this.getAuthHeader(),
+      headers,
+      body: payload ? JSON.stringify(payload) : undefined,
     });
 
     if (!response.ok) {

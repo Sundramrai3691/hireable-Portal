@@ -1,7 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Clock, DollarSign, Building2, Star } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Clock, DollarSign, Building2, Star } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import ApplyModal from "@/components/ApplyModal";
 
 interface Job {
   id: string | number;
@@ -23,18 +25,18 @@ interface JobCardProps {
 
 const JobCard = ({ job }: JobCardProps) => {
   const { toast } = useToast();
+  const [applyOpen, setApplyOpen] = useState(false);
 
   const handleApply = () => {
-    toast({
-      title: "Application Submitted! 🎉",
-      description: `Your application for ${job.title} at ${job.company} has been submitted successfully.`,
-    });
+    setApplyOpen(true);
   };
 
   return (
-    <div className={`glass-card p-6 hover-lift group relative ${
-      job.featured ? 'ring-2 ring-primary/50' : ''
-    }`}>
+    <div
+      className={`glass-card p-6 hover-lift group relative ${
+        job.featured ? "ring-2 ring-primary/50" : ""
+      }`}
+    >
       {job.featured && (
         <div className="absolute -top-2 -right-2">
           <div className="bg-gradient-primary text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
@@ -43,15 +45,15 @@ const JobCard = ({ job }: JobCardProps) => {
           </div>
         </div>
       )}
-      
+
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <img
-            src={job.companyLogo || '/assets/default-logo.png'}
+            src={job.companyLogo || "/assets/default-logo.png"}
             alt="logo"
             width={48}
             height={48}
-            style={{ objectFit: 'contain' }}
+            style={{ objectFit: "contain" }}
           />
           <div>
             <h3 className="font-bold text-lg group-hover:text-primary transition-colors">
@@ -63,7 +65,7 @@ const JobCard = ({ job }: JobCardProps) => {
             </div>
           </div>
         </div>
-        <Badge variant={job.type === 'Full-time' ? 'default' : 'secondary'}>
+        <Badge variant={job.type === "Full-time" ? "default" : "secondary"}>
           {job.type}
         </Badge>
       </div>
@@ -96,22 +98,19 @@ const JobCard = ({ job }: JobCardProps) => {
       </div>
 
       <div className="flex gap-3">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex-1"
-        >
+        <Button variant="outline" size="sm" className="flex-1">
           View Details
         </Button>
-        <Button 
-          variant="default" 
-          size="sm" 
+        <Button
+          variant="default"
+          size="sm"
           className="flex-1"
           onClick={handleApply}
         >
           Apply Now
         </Button>
       </div>
+      <ApplyModal jobId={job.id} open={applyOpen} onOpenChange={setApplyOpen} />
     </div>
   );
 };
