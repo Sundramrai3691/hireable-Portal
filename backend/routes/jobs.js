@@ -1,5 +1,6 @@
 const express = require('express');
-const { supabase } = require('../config/supabase');
+const Job = require('../models/Job');
+const Application = require('../models/Application');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
@@ -19,25 +20,19 @@ router.post('/', authMiddleware, async (req, res) => {
         : skills;
     }
 
-    const { data: job, error } = await supabase
-      .from('jobs')
-      .insert([{
-        title,
-        company,
-        location: location || 'Remote',
-        type: type || 'Full-time',
-        salary: salary || 'Not specified',
-        description: description || '',
-        tags: tagsArray,
-        posted_by: req.user.id,
-        is_active: true
-      }])
-      .select()
-      .single();
+    const job = new Job({
+      title,
+      company,
+      location: location || 'Remote',
+      type: type || 'Full-time',
+      salary: salary || 'Not specified',
+      description: description || '',
+      tags: tagsArray,
+      postedBy: req.user.id,
+      isActive: true
+    });
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
+    await job.save();
 
     res.status(201).json(job);
   } catch (error) {
@@ -49,29 +44,21 @@ router.get('/', async (req, res) => {
   try {
     const { location, tag, type } = req.query;
 
-    let query = supabase
-      .from('jobs')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+    let query = { isActive: true };
 
     if (location && location !== 'All') {
-      query = query.ilike('location', `%${location}%`);
+      query.location = { $regex: location, $options: 'i' };
     }
 
     if (type && type !== 'All') {
-      query = query.eq('type', type);
+      query.type = type;
     }
 
     if (tag) {
-      query = query.contains('tags', [tag]);
+      query.tags = tag;
     }
 
-    const { data: jobs, error } = await query;
-
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
+    const jobs = await Job.find(query).sort({ createdAt: -1 });
 
     res.json(jobs);
   } catch (error) {
@@ -84,29 +71,21 @@ router.post('/:id/apply', authMiddleware, async (req, res) => {
     const jobId = req.params.id;
     const userId = req.user.id;
 
-    const { data: existingApplication } = await supabase
-      .from('applications')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('job_id', jobId)
-      .single();
+    const existingApplication = await Application.findOne({
+      user: userId,
+      job: jobId
+    });
 
     if (existingApplication) {
       return res.status(400).json({ error: 'Already applied to this job' });
     }
 
-    const { data: application, error } = await supabase
-      .from('applications')
-      .insert([{
-        user_id: userId,
-        job_id: jobId
-      }])
-      .select()
-      .single();
+    const application = new Application({
+      user: userId,
+      job: jobId
+    });
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
+    await application.save();
 
     res.status(201).json(application);
   } catch (error) {

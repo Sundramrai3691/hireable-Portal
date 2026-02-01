@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { supabase } = require('../config/supabase');
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -13,11 +13,7 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'Email, password, and name are required' });
     }
 
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single();
+    const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists' });
@@ -25,20 +21,14 @@ router.post('/signup', async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const { data: user, error } = await supabase
-      .from('users')
-      .insert([{
-        email,
-        password_hash: passwordHash,
-        name,
-        role: 'candidate'
-      }])
-      .select()
-      .single();
+    const user = new User({
+      email,
+      passwordHash,
+      name,
+      role: 'candidate'
+    });
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
+    await user.save();
 
     const token = jwt.sign(
       { userId: user.id, email: user.email },
@@ -67,17 +57,13 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
+    const user = await User.findOne({ email });
 
-    if (error || !user) {
+    if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password_hash);
+    const validPassword = await bcrypt.compare(password, user.passwordHash);
 
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });

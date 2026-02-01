@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-const { testConnection } = require('./config/supabase');
+const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const jobRoutes = require('./routes/jobs');
 const userRoutes = require('./routes/users');
@@ -26,7 +26,7 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/users', userRoutes);
 
 async function startServer() {
-  await testConnection();
+  await connectDB();
 
   app.listen(PORT, () => {
     console.log(`✓ Server running on http://localhost:${PORT}`);
