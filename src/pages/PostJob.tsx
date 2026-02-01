@@ -1,19 +1,39 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Building2, MapPin, DollarSign, Users, Briefcase, FileText } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/lib/api';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Building2,
+  MapPin,
+  DollarSign,
+  Users,
+  Briefcase,
+  FileText,
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiClient } from "@/lib/api";
 
 interface JobFormData {
   title: string;
   company: string;
+  companyLogo?: string;
   location: string;
   type: string;
   salaryMin: string;
@@ -28,14 +48,15 @@ const PostJob = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<JobFormData>({
-    title: '',
-    company: '',
-    location: '',
-    type: '',
-    salaryMin: '',
-    salaryMax: '',
-    skills: '',
-    description: '',
+    title: "",
+    company: "",
+    companyLogo: "",
+    location: "",
+    type: "",
+    salaryMin: "",
+    salaryMax: "",
+    skills: "",
+    description: "",
   });
 
   const [errors, setErrors] = useState<Partial<JobFormData>>({});
@@ -43,36 +64,38 @@ const PostJob = () => {
   const validateForm = () => {
     const newErrors: Partial<JobFormData> = {};
 
-    if (!formData.title.trim()) newErrors.title = 'Job title is required';
-    if (!formData.company.trim()) newErrors.company = 'Company name is required';
-    if (!formData.location.trim()) newErrors.location = 'Location is required';
-    if (!formData.type) newErrors.type = 'Job type is required';
-    if (!formData.description.trim()) newErrors.description = 'Job description is required';
+    if (!formData.title.trim()) newErrors.title = "Job title is required";
+    if (!formData.company.trim())
+      newErrors.company = "Company name is required";
+    if (!formData.location.trim()) newErrors.location = "Location is required";
+    if (!formData.type) newErrors.type = "Job type is required";
+    if (!formData.description.trim())
+      newErrors.description = "Job description is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleInputChange = (field: keyof JobFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
       toast({
         title: "Authentication Required",
         description: "Please login to post a job.",
         variant: "destructive",
       });
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
-    
+
     if (!validateForm()) {
       toast({
         title: "Validation Error",
@@ -85,18 +108,20 @@ const PostJob = () => {
     setIsSubmitting(true);
 
     try {
-      const salary = formData.salaryMin && formData.salaryMax 
-        ? `$${formData.salaryMin} - $${formData.salaryMax}` 
-        : 'Not specified';
+      const salary =
+        formData.salaryMin && formData.salaryMax
+          ? `$${formData.salaryMin} - $${formData.salaryMax}`
+          : "Not specified";
 
       await apiClient.createJob({
         title: formData.title,
         company: formData.company,
+        companyLogo: formData.companyLogo || null,
         location: formData.location,
         type: formData.type,
         salary,
         description: formData.description,
-        skills: formData.skills
+        tags: formData.skills,
       });
 
       toast({
@@ -106,18 +131,18 @@ const PostJob = () => {
 
       // Reset form
       setFormData({
-        title: '',
-        company: '',
-        location: '',
-        type: '',
-        salaryMin: '',
-        salaryMax: '',
-        skills: '',
-        description: '',
+        title: "",
+        company: "",
+        companyLogo: "",
+        location: "",
+        type: "",
+        salaryMin: "",
+        salaryMax: "",
+        skills: "",
+        description: "",
       });
-      
-      navigate('/jobs');
-      
+
+      navigate("/jobs");
     } catch (error: any) {
       toast({
         title: "Error Posting Job",
@@ -129,18 +154,24 @@ const PostJob = () => {
     }
   };
 
-  const jobTypes = ['Full-time', 'Part-time', 'Remote', 'Internship', 'Contract'];
+  const jobTypes = [
+    "Full-time",
+    "Part-time",
+    "Remote",
+    "Internship",
+    "Contract",
+  ];
   const locations = [
-    'Remote',
-    'New York, NY',
-    'San Francisco, CA',
-    'London, UK',
-    'Seattle, WA',
-    'Austin, TX',
-    'Boston, MA',
-    'Los Angeles, CA',
-    'Chicago, IL',
-    'Toronto, CA',
+    "Remote",
+    "New York, NY",
+    "San Francisco, CA",
+    "London, UK",
+    "Seattle, WA",
+    "Austin, TX",
+    "Boston, MA",
+    "Los Angeles, CA",
+    "Chicago, IL",
+    "Toronto, CA",
   ];
 
   return (
@@ -152,7 +183,8 @@ const PostJob = () => {
               Post a Job Opening
             </h1>
             <p className="text-lg text-muted-foreground">
-              Reach thousands of qualified candidates and find your next team member
+              Reach thousands of qualified candidates and find your next team
+              member
             </p>
           </div>
 
@@ -175,10 +207,14 @@ const PostJob = () => {
                       id="title"
                       placeholder="e.g. Senior Frontend Developer"
                       value={formData.title}
-                      onChange={(e) => handleInputChange('title', e.target.value)}
-                      className={errors.title ? 'border-destructive' : ''}
+                      onChange={(e) =>
+                        handleInputChange("title", e.target.value)
+                      }
+                      className={errors.title ? "border-destructive" : ""}
                     />
-                    {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+                    {errors.title && (
+                      <p className="text-sm text-destructive">{errors.title}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -189,19 +225,47 @@ const PostJob = () => {
                         id="company"
                         placeholder="e.g. Acme Inc."
                         value={formData.company}
-                        onChange={(e) => handleInputChange('company', e.target.value)}
-                        className={`pl-10 ${errors.company ? 'border-destructive' : ''}`}
+                        onChange={(e) =>
+                          handleInputChange("company", e.target.value)
+                        }
+                        className={`pl-10 ${errors.company ? "border-destructive" : ""}`}
                       />
                     </div>
-                    {errors.company && <p className="text-sm text-destructive">{errors.company}</p>}
+                    {errors.company && (
+                      <p className="text-sm text-destructive">
+                        {errors.company}
+                      </p>
+                    )}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="companyLogo">Company Logo URL</Label>
+                  <Input
+                    id="companyLogo"
+                    placeholder="https://example.com/logo.png"
+                    value={formData.companyLogo}
+                    onChange={(e) =>
+                      handleInputChange("companyLogo", e.target.value)
+                    }
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Optional: a public URL to the company logo image
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="location">Location *</Label>
-                    <Select value={formData.location} onValueChange={(value) => handleInputChange('location', value)}>
-                      <SelectTrigger className={errors.location ? 'border-destructive' : ''}>
+                    <Select
+                      value={formData.location}
+                      onValueChange={(value) =>
+                        handleInputChange("location", value)
+                      }
+                    >
+                      <SelectTrigger
+                        className={errors.location ? "border-destructive" : ""}
+                      >
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-muted-foreground" />
                           <SelectValue placeholder="Select location" />
@@ -215,13 +279,24 @@ const PostJob = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.location && <p className="text-sm text-destructive">{errors.location}</p>}
+                    {errors.location && (
+                      <p className="text-sm text-destructive">
+                        {errors.location}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="type">Job Type *</Label>
-                    <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)}>
-                      <SelectTrigger className={errors.type ? 'border-destructive' : ''}>
+                    <Select
+                      value={formData.type}
+                      onValueChange={(value) =>
+                        handleInputChange("type", value)
+                      }
+                    >
+                      <SelectTrigger
+                        className={errors.type ? "border-destructive" : ""}
+                      >
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-muted-foreground" />
                           <SelectValue placeholder="Select job type" />
@@ -235,7 +310,9 @@ const PostJob = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.type && <p className="text-sm text-destructive">{errors.type}</p>}
+                    {errors.type && (
+                      <p className="text-sm text-destructive">{errors.type}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -260,7 +337,9 @@ const PostJob = () => {
                       type="number"
                       placeholder="80000"
                       value={formData.salaryMin}
-                      onChange={(e) => handleInputChange('salaryMin', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("salaryMin", e.target.value)
+                      }
                     />
                   </div>
 
@@ -271,7 +350,9 @@ const PostJob = () => {
                       type="number"
                       placeholder="120000"
                       value={formData.salaryMax}
-                      onChange={(e) => handleInputChange('salaryMax', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("salaryMax", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -282,7 +363,9 @@ const PostJob = () => {
                     id="skills"
                     placeholder="React, TypeScript, Node.js, etc. (comma-separated)"
                     value={formData.skills}
-                    onChange={(e) => handleInputChange('skills', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("skills", e.target.value)
+                    }
                   />
                   <p className="text-sm text-muted-foreground">
                     Enter skills separated by commas
@@ -308,43 +391,49 @@ const PostJob = () => {
                     id="description"
                     placeholder="Describe the role, responsibilities, requirements, and what makes this opportunity special..."
                     value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    className={`min-h-32 ${errors.description ? 'border-destructive' : ''}`}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
+                    className={`min-h-32 ${errors.description ? "border-destructive" : ""}`}
                   />
-                  {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+                  {errors.description && (
+                    <p className="text-sm text-destructive">
+                      {errors.description}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             <div className="flex gap-4 justify-end">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 size="lg"
                 onClick={() => {
                   setFormData({
-                    title: '',
-                    company: '',
-                    location: '',
-                    type: '',
-                    salaryMin: '',
-                    salaryMax: '',
-                    skills: '',
-                    description: '',
+                    title: "",
+                    company: "",
+                    location: "",
+                    type: "",
+                    salaryMin: "",
+                    salaryMax: "",
+                    skills: "",
+                    description: "",
                   });
                   setErrors({});
                 }}
               >
                 Clear Form
               </Button>
-              <Button 
-                type="submit" 
-                variant="hero" 
+              <Button
+                type="submit"
+                variant="hero"
                 size="lg"
                 disabled={isSubmitting}
                 className="min-w-32"
               >
-                {isSubmitting ? 'Posting...' : 'Post Job'}
+                {isSubmitting ? "Posting..." : "Post Job"}
               </Button>
             </div>
           </form>
