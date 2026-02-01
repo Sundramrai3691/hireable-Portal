@@ -1,89 +1,54 @@
 # Hireable Backend API
 
-Minimal backend for the Hireable job portal. Built with Node.js, Express, and Supabase.
+Minimal backend for the Hireable job portal. Built with Node.js, Express, and MongoDB (Mongoose).
 
 ## Setup
 
 1. Install dependencies:
+
 ```bash
 cd backend
 npm install
 ```
 
 2. Create `.env` file:
+
 ```bash
 cp .env.example .env
 ```
 
 3. Add your credentials to `.env`:
+
 ```
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_KEY=your_supabase_service_key
+MONGO_URI=mongodb://localhost:27017/hireable
 JWT_SECRET=your_random_secret_key
 PORT=5000
 ```
 
-4. Run database migrations (see Database Setup below)
+4. Ensure MongoDB is running locally or provide a remote connection string.
 
 5. Start the server:
+
 ```bash
 npm run dev
 ```
 
 ## Database Setup
 
-The backend uses Supabase. Create these tables:
+The backend uses MongoDB with Mongoose. The database name is `hireable` (or as specified in `MONGO_URI`).
 
-```sql
--- Users table
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  name TEXT NOT NULL,
-  role TEXT DEFAULT 'candidate',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+Models:
 
--- Jobs table
-CREATE TABLE jobs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  company TEXT NOT NULL,
-  location TEXT DEFAULT 'Remote',
-  type TEXT DEFAULT 'Full-time',
-  salary TEXT,
-  description TEXT,
-  tags TEXT[],
-  is_active BOOLEAN DEFAULT true,
-  posted_by UUID REFERENCES users(id),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+- **User**: `email`, `passwordHash`, `name`, `role`, `createdAt`
+- **Job**: `title`, `company`, `location`, `type`, `salary`, `description`, `tags`, `isActive`, `postedBy`, `createdAt`
+- **Application**: `user`, `job`, `appliedAt`
 
--- Applications table
-CREATE TABLE applications (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) NOT NULL,
-  job_id UUID REFERENCES jobs(id) NOT NULL,
-  applied_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, job_id)
-);
-
--- Enable RLS
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
-
--- RLS Policies (permissive for API use with service key)
-CREATE POLICY "Allow service role full access to users" ON users FOR ALL USING (true);
-CREATE POLICY "Allow service role full access to jobs" ON jobs FOR ALL USING (true);
-CREATE POLICY "Allow service role full access to applications" ON applications FOR ALL USING (true);
-```
+The application will automatically create the necessary collections when data is inserted.
 
 ## API Endpoints
 
 ### Health Check
+
 ```bash
 curl http://localhost:5000/api/health
 ```
@@ -91,6 +56,7 @@ curl http://localhost:5000/api/health
 ### Authentication
 
 **Signup:**
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/signup \
   -H "Content-Type: application/json" \
@@ -102,6 +68,7 @@ curl -X POST http://localhost:5000/api/auth/signup \
 ```
 
 **Login:**
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -114,6 +81,7 @@ curl -X POST http://localhost:5000/api/auth/login \
 ### Jobs
 
 **Create Job (requires auth):**
+
 ```bash
 curl -X POST http://localhost:5000/api/jobs \
   -H "Content-Type: application/json" \
@@ -130,6 +98,7 @@ curl -X POST http://localhost:5000/api/jobs \
 ```
 
 **Get Jobs:**
+
 ```bash
 # All jobs
 curl http://localhost:5000/api/jobs
@@ -145,6 +114,7 @@ curl "http://localhost:5000/api/jobs?tag=React"
 ```
 
 **Apply to Job (requires auth):**
+
 ```bash
 curl -X POST http://localhost:5000/api/jobs/JOB_ID/apply \
   -H "Authorization: Bearer YOUR_TOKEN"
@@ -153,6 +123,7 @@ curl -X POST http://localhost:5000/api/jobs/JOB_ID/apply \
 ### User Applications
 
 **Get Applied Jobs (requires auth):**
+
 ```bash
 curl http://localhost:5000/api/users/USER_ID/applications \
   -H "Authorization: Bearer YOUR_TOKEN"
@@ -161,11 +132,13 @@ curl http://localhost:5000/api/users/USER_ID/applications \
 ## Development
 
 Run in development mode with auto-reload:
+
 ```bash
 npm run dev
 ```
 
 Run in production:
+
 ```bash
 npm start
 ```
