@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import JobCard from '@/components/JobCard';
 import SearchBar from '@/components/SearchBar';
 import JobFilter from '@/components/JobFilter';
-import jobsData from '@/data/jobs.json';
 import { AlertCircle } from 'lucide-react';
+import { apiClient } from '@/lib/api';
 
 interface FilterState {
   type: string;
@@ -15,11 +15,22 @@ const Jobs = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
   const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [jobsData, setJobsData] = useState<any[]>([]);
   const [filters, setFilters] = useState<FilterState>({
     type: 'All',
     location: 'All',
     sortBy: 'newest',
   });
+
+  useEffect(() => {
+    let isMounted = true;
+    apiClient.getJobs().then((jobs) => {
+      if (isMounted) setJobsData(jobs);
+    }).catch(() => {
+      setJobsData([]);
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   const handleSearch = (query: string, location: string) => {
     setSearchQuery(query);

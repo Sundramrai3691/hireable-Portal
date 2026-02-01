@@ -11,6 +11,26 @@ const applicationSchema = new mongoose.Schema({
     ref: "Job",
     required: true,
   },
+  applicantName: {
+    type: String,
+    required: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+  },
+  college: {
+    type: String,
+    default: null,
+  },
+  graduationYear: {
+    type: Number,
+    default: null,
+  },
+  resumeUrl: {
+    type: String,
+    required: true,
+  },
   appliedAt: {
     type: Date,
     default: Date.now,

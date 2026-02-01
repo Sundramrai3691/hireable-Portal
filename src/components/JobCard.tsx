@@ -4,13 +4,13 @@ import { MapPin, Clock, DollarSign, Building2, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Job {
-  id: number;
+  id: string | number;
   title: string;
   company: string;
   location: string;
   type: string;
   salary: string;
-  logo: string;
+  companyLogo?: string | null;
   description: string;
   skills: string[];
   posted: string;
@@ -47,9 +47,11 @@ const JobCard = ({ job }: JobCardProps) => {
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <img
-            src={job.logo}
-            alt={`${job.company} logo`}
-            className="w-12 h-12 rounded-lg object-cover"
+            src={job.companyLogo || '/assets/default-logo.png'}
+            alt="logo"
+            width={48}
+            height={48}
+            style={{ objectFit: 'contain' }}
           />
           <div>
             <h3 className="font-bold text-lg group-hover:text-primary transition-colors">

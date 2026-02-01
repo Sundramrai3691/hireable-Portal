@@ -14,10 +14,31 @@ router.get("/:id/applications", authMiddleware, async (req, res) => {
     }
 
     const applications = await Application.find({ user: currentUserId })
-      .populate("job")
-      .sort({ appliedAt: -1 });
+      .sort({ appliedAt: -1 })
+      .populate({ path: "job", select: "title company location tags companyLogo" })
+      .lean();
 
-    res.json(applications);
+    const result = applications.map((a) => ({
+      id: a._id,
+      appliedAt: a.appliedAt,
+      applicantName: a.applicantName || null,
+      phone: a.phone || null,
+      college: a.college ?? null,
+      graduationYear: typeof a.graduationYear === "number" ? a.graduationYear : null,
+      resumeUrl: a.resumeUrl || null,
+      job: a.job
+        ? {
+            id: a.job._id,
+            title: a.job.title,
+            company: a.job.company,
+            location: a.job.location,
+            tags: a.job.tags || [],
+            companyLogo: typeof a.job.companyLogo !== "undefined" ? a.job.companyLogo : null,
+          }
+        : null,
+    }));
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
