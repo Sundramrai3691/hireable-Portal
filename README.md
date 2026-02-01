@@ -1,6 +1,6 @@
 # Hireable – Job Portal
 
-A modern job portal built using **React**, **Vite**, **Tailwind CSS**, **TypeScript**, and a **Node.js + Express** backend with **Supabase**.
+A modern job portal built using **React**, **Vite**, **Tailwind CSS**, **TypeScript**, and a **Node.js + Express** backend with **MongoDB**.
 
 ## Features
 
@@ -22,7 +22,7 @@ A modern job portal built using **React**, **Vite**, **Tailwind CSS**, **TypeScr
 
 ### Backend
 - Node.js + Express
-- Supabase (PostgreSQL database)
+- MongoDB (Mongoose)
 - JWT authentication
 - bcrypt password hashing
 
@@ -31,7 +31,7 @@ A modern job portal built using **React**, **Vite**, **Tailwind CSS**, **TypeScr
 ### Prerequisites
 
 - Node.js 18+ installed
-- A Supabase account and project
+- MongoDB installed or Atlas connection string
 
 ### 1. Clone and Install
 
@@ -48,34 +48,17 @@ npm install
 cd ..
 ```
 
-### 2. Configure Supabase
+### 2. Configure Environment
 
-1. Create a [Supabase project](https://app.supabase.com)
-2. Go to Settings > API and copy:
-   - Project URL
-   - Anon key
-   - Service role key
-
-3. Update `backend/.env` with your credentials:
+Update `backend/.env` with your credentials:
 
 ```env
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_KEY=your_service_role_key
+MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_random_secret_key
 PORT=5000
 ```
 
-### 3. Database Setup
-
-The database tables are already created via migration. Verify they exist:
-
-```bash
-cd backend
-node test.js
-```
-
-### 4. Start Development Servers
+### 3. Start Development Servers
 
 **Terminal 1 - Backend:**
 ```bash
