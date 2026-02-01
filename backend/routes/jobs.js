@@ -45,25 +45,26 @@ router.post("/", authMiddleware, async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const { location, tag, type } = req.query;
+    const { location, tag } = req.query;
 
-    let query = { isActive: true };
+    const filter = {
+      isActive: true,
+      ...(location ? { location } : {}),
+      ...(tag ? { tags: tag } : {}),
+    };
 
-    if (location && location !== "All") {
-      query.location = { $regex: location, $options: "i" };
-    }
+    const jobs = await Job.find(filter).sort({ createdAt: -1 }).lean();
 
-    if (type && type !== "All") {
-      query.type = type;
-    }
+    const normalized = jobs.map((job) => {
+      job.id = job._id;
+      delete job._id;
+      if (typeof job.companyLogo === "undefined") {
+        job.companyLogo = null;
+      }
+      return job;
+    });
 
-    if (tag) {
-      query.tags = tag;
-    }
-
-    const jobs = await Job.find(query).sort({ createdAt: -1 });
-
-    res.json(jobs);
+    res.json(normalized);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
