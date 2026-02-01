@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Building2, MapPin, DollarSign, Users, Briefcase, FileText } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/lib/api';
 
 interface JobFormData {
   title: string;
@@ -21,6 +24,8 @@ interface JobFormData {
 
 const PostJob = () => {
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -58,6 +63,16 @@ const PostJob = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to post a job.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    
     if (!validateForm()) {
       toast({
         title: "Validation Error",
@@ -69,15 +84,19 @@ const PostJob = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Job posting data:', {
-        ...formData,
-        salary: formData.salaryMin && formData.salaryMax 
-          ? `$${formData.salaryMin} - $${formData.salaryMax}` 
-          : 'Not specified',
-        skills: formData.skills.split(',').map(skill => skill.trim()).filter(Boolean),
-        postedAt: new Date().toISOString(),
+    try {
+      const salary = formData.salaryMin && formData.salaryMax 
+        ? `$${formData.salaryMin} - $${formData.salaryMax}` 
+        : 'Not specified';
+
+      await apiClient.createJob({
+        title: formData.title,
+        company: formData.company,
+        location: formData.location,
+        type: formData.type,
+        salary,
+        description: formData.description,
+        skills: formData.skills
       });
 
       toast({
@@ -97,8 +116,17 @@ const PostJob = () => {
         description: '',
       });
       
+      navigate('/jobs');
+      
+    } catch (error: any) {
+      toast({
+        title: "Error Posting Job",
+        description: error.message || "Something went wrong.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 2000);
+    }
   };
 
   const jobTypes = ['Full-time', 'Part-time', 'Remote', 'Internship', 'Contract'];
