@@ -1,14 +1,14 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const applicationSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   job: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Job',
+    ref: "Job",
     required: true,
   },
   appliedAt: {
@@ -18,24 +18,22 @@ const applicationSchema = new mongoose.Schema({
 });
 
 // Transform to match frontend expectations
-applicationSchema.set('toJSON', {
+applicationSchema.set("toJSON", {
   virtuals: true,
   versionKey: false,
   transform: function (doc, ret) {
     ret.id = ret._id;
     delete ret._id;
-    
+
     ret.user_id = ret.user; // Supabase likely returned user_id
     delete ret.user;
-    
-    ret.job_id = ret.job; // Supabase likely returned job_id
-    // We don't delete ret.job here if we want to support populated 'job' field,
-    // but usually population replaces the ID. 
-    // If populated, ret.job is an object.
-    
+
+    ret.jobs = ret.job; // Map to 'jobs' to match frontend expectation
+    delete ret.job;
+
     ret.applied_at = ret.appliedAt;
     delete ret.appliedAt;
   },
 });
 
-module.exports = mongoose.model('Application', applicationSchema);
+module.exports = mongoose.model("Application", applicationSchema);

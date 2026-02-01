@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const jobSchema = new mongoose.Schema({
   title: {
@@ -15,15 +15,15 @@ const jobSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    default: 'Full-time',
+    default: "Full-time",
   },
   salary: {
     type: String,
-    default: 'Not specified',
+    default: "Not specified",
   },
   description: {
     type: String,
-    default: '',
+    default: "",
   },
   tags: {
     type: [String],
@@ -35,7 +35,7 @@ const jobSchema = new mongoose.Schema({
   },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   createdAt: {
@@ -45,23 +45,27 @@ const jobSchema = new mongoose.Schema({
 });
 
 // Transform to match frontend expectations (snake_case)
-jobSchema.set('toJSON', {
+jobSchema.set("toJSON", {
   virtuals: true,
   versionKey: false,
   transform: function (doc, ret) {
     ret.id = ret._id;
     delete ret._id;
-    
+
     // Map camelCase to snake_case for frontend compatibility
     ret.is_active = ret.isActive;
     delete ret.isActive;
-    
+
     ret.posted_by = ret.postedBy;
     delete ret.postedBy;
-    
+
     ret.created_at = ret.createdAt;
     delete ret.createdAt;
+
+    // Add frontend compatibility fields
+    ret.skills = ret.tags;
+    ret.posted = ret.created_at;
   },
 });
 
-module.exports = mongoose.model('Job', jobSchema);
+module.exports = mongoose.model("Job", jobSchema);
