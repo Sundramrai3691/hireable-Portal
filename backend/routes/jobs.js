@@ -74,6 +74,13 @@ router.post("/:id/apply", authMiddleware, async (req, res) => {
   try {
     const jobId = req.params.id;
     const userId = req.user.id;
+    const {
+      applicantName,
+      phone,
+      college = null,
+      graduationYear = null,
+      resumeUrl,
+    } = req.body;
 
     const existingApplication = await Application.findOne({
       user: userId,
@@ -84,9 +91,25 @@ router.post("/:id/apply", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Already applied to this job" });
     }
 
+    if (!applicantName || !phone || !resumeUrl) {
+      return res
+        .status(400)
+        .json({ error: "applicantName, phone and resumeUrl are required" });
+    }
+
     const application = new Application({
       user: userId,
       job: jobId,
+      applicantName,
+      phone,
+      college: typeof college === "string" && college.trim() ? college.trim() : null,
+      graduationYear:
+        typeof graduationYear === "number"
+          ? graduationYear
+          : graduationYear
+          ? Number(graduationYear)
+          : null,
+      resumeUrl,
     });
 
     await application.save();
