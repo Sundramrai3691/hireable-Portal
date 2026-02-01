@@ -7,7 +7,8 @@ A modern job portal built using **React**, **Vite**, **Tailwind CSS**, **TypeScr
 - User authentication (signup/login)
 - Browse job listings with filters
 - Post and manage jobs
-- Apply to jobs
+- Company logos on job listings
+- Apply to jobs with applicant details
 - View application history
 - Responsive UI built with **shadcn/ui**
 - Fast performance using **Vite** as the bundler
@@ -73,7 +74,7 @@ Backend runs on http://localhost:5000
 npm run dev
 ```
 
-Frontend runs on http://localhost:8080
+Frontend runs on http://localhost:5173
 
 ## Project Structure
 
@@ -102,6 +103,13 @@ hireable-portal/
 └── README.md             # This file
 ```
 
+### Backend Scripts
+
+```
+backend/scripts/
+└── set-default-logo.js   # Migration to backfill missing company logos
+```
+
 ## API Documentation
 
 See `backend/README.md` for complete API documentation.
@@ -114,6 +122,13 @@ See `backend/README.md` for complete API documentation.
 - `POST /api/jobs` - Create job (auth required)
 - `POST /api/jobs/:id/apply` - Apply to job (auth required)
 - `GET /api/users/:id/applications` - View applications (auth required)
+
+#### Apply Body Fields
+- `applicantName` (string, required)
+- `phone` (string, required)
+- `resumeUrl` (string, required)
+- `college` (string, optional)
+- `graduationYear` (number, optional)
 
 ## Usage Examples
 
@@ -162,11 +177,27 @@ curl -X POST http://localhost:5000/api/jobs \
   -d '{
     "title": "Senior Developer",
     "company": "Tech Corp",
+    "companyLogo": "https://example.com/logo.png",
     "location": "Remote",
     "type": "Full-time",
     "salary": "$100k - $150k",
     "description": "We need an experienced developer",
-    "skills": "React, Node.js, TypeScript"
+    "tags": "React"
+  }'
+```
+
+### Apply to a Job
+
+```bash
+curl -X POST http://localhost:5000/api/jobs/JOB_ID/apply \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "applicantName": "Student Name",
+    "phone": "9999999999",
+    "college": "XYZ",
+    "graduationYear": 2024,
+    "resumeUrl": "https://example.com/resume.pdf"
   }'
 ```
 
@@ -195,9 +226,19 @@ node test.js         # Test database connection
 - Password hashing with bcrypt (10 rounds)
 - JWT-based authentication (7-day expiry)
 - Protected API endpoints
-- Row Level Security (RLS) on database
 - CORS configuration
 - Input validation
+
+## Data Migration
+
+Use the provided migration script to backfill missing company logos:
+
+```bash
+# Ensure backend/.env contains MONGO_URI and JWT_SECRET
+node backend/scripts/set-default-logo.js
+```
+
+The script sets a default logo URL for jobs where `companyLogo` does not exist and prints the number of updated documents. The default is `https://example.com/default-logo.png`.
 
 ## Deployment
 
@@ -218,8 +259,7 @@ npm run build
 
 Make sure to set these in production:
 
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_KEY`
+- `MONGO_URI`
 - `JWT_SECRET` (use a strong random value)
 - `PORT`
 
@@ -230,14 +270,12 @@ Update frontend API URL in `src/lib/api.ts` to production backend URL.
 ### Backend won't start
 
 - Check `.env` file exists in backend folder
-- Verify Supabase credentials are correct
 - Ensure port 5000 is available
 
 ### Database connection errors
 
-- Run `node test.js` to verify connection
-- Check Supabase project is active
-- Verify Service Role key (not Anon key) is used
+- Run `node backend/test.js` to verify connection
+- Verify `MONGO_URI` is correct and database is reachable
 
 ### Frontend API errors
 
