@@ -1,311 +1,330 @@
-# Hireable – Job Portal
+# PlaceMate
 
-A modern job portal built using **React**, **Vite**, **Tailwind CSS**, **TypeScript**, and a **Node.js + Express** backend with **MongoDB**.
+PlaceMate is a placement intelligence platform for engineering students navigating campus placement season. It turns the original Hireable job portal into a student-first command center for placement prep, company tracking, interview experience sharing, readiness scoring, and application management.
 
-## Features
+## What It Does
 
-- User authentication (signup/login)
-- Browse job listings with filters
-- Post and manage jobs
-- Company logos on job listings
-- Apply to jobs with applicant details
-- View application history
-- Responsive UI built with **shadcn/ui**
-- Fast performance using **Vite** as the bundler
+- Student profile setup with branch, year, CGPA, skills, DSA stats, projects, and target companies
+- Placement dashboard with personalized feed, readiness score, eligible drives, and tracker activity
+- Resume-JD scorer powered by keyword extraction and TF-IDF using `natural`
+- Company drive browser with branch and CGPA eligibility logic
+- Application tracker with kanban-style stage management using `@hello-pangea/dnd`
+- Interview experience board with filters, submission flow, and upvotes
+- Readiness diagnostic with scoring breakdown and company fit suggestions
+- Authenticated backend with JWT, MongoDB, and seeded sample placement data
 
 ## Tech Stack
 
 ### Frontend
-- React + TypeScript
+
+- React 18
+- TypeScript
 - Vite
 - Tailwind CSS
-- shadcn/ui (Radix UI + Tailwind variants)
+- shadcn/ui + Radix UI
+- React Router
+- TanStack Query
+- Recharts
+- `@hello-pangea/dnd`
 
 ### Backend
-- Node.js + Express
-- MongoDB (Mongoose)
+
+- Node.js
+- Express
+- MongoDB with Mongoose
 - JWT authentication
-- bcrypt password hashing
+- bcrypt
+- `natural` for resume/JD text analysis
+
+## Core Product Surfaces
+
+### Student-facing pages
+
+- `/` - PlaceMate landing page
+- `/auth` - login and signup
+- `/profile/setup` - one-time student profile onboarding
+- `/dashboard` - placement command center
+- `/companies` - company drive discovery and eligibility filtering
+- `/jobs` - alias of the companies flow for compatibility
+- `/scorer` - resume vs JD analysis
+- `/experiences` - interview experience feed and submission
+- `/tracker` - application kanban board
+- `/readiness` - readiness diagnostic and score breakdown
+
+### Admin-style flow
+
+- `/post-job` - add a company drive with placement-specific metadata
 
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ installed
-- MongoDB installed or Atlas connection string
+- Node.js 18+
+- MongoDB running locally or a MongoDB Atlas connection string
 
-### 1. Clone and Install
+### 1. Install dependencies
 
 ```bash
-git clone <your-repo-url>
-cd hireable-portal
-
-# Install frontend dependencies
 npm install
 
-# Install backend dependencies
 cd backend
 npm install
 cd ..
 ```
 
-### 2. Configure Environment
+### 2. Configure environment
 
-Update `backend/.env` with your credentials:
+Create `backend/.env` from `backend/.env.example`:
 
 ```env
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_random_secret_key
+MONGO_URI=mongodb://localhost:27017/placemate
+JWT_SECRET=replace_with_a_secure_random_secret
 PORT=5000
+CLIENT_URL=http://localhost:5173
 ```
 
-### 3. Start Development Servers
+Optional frontend environment:
 
-**Terminal 1 - Backend:**
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+### 3. Run the app
+
+Backend:
+
 ```bash
 cd backend
 npm run dev
 ```
 
-Backend runs on http://localhost:5000
+Frontend:
 
-**Terminal 2 - Frontend:**
 ```bash
 npm run dev
 ```
 
-Frontend runs on http://localhost:5173
+Default local URLs:
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5000`
+- Health check: `http://localhost:5000/api/health`
+
+## Seeded Data
+
+On backend startup, PlaceMate seeds sample company drives and interview experiences if the collections are empty. This helps avoid blank states on a fresh database.
+
+Seeded sample companies include flows like Oracle, MathWorks, BlackRock, Texas Instruments, Atlassian, and others.
+
+## Main Features
+
+### 1. Profile setup
+
+Students can save:
+
+- College
+- Branch
+- Year
+- CGPA
+- LeetCode rating
+- Problems solved
+- Skills
+- Project counts
+- Internship status
+- Open source contributions
+- System design comfort
+- Strong and weak topics
+- Target companies
+
+### 2. Dashboard
+
+The dashboard combines:
+
+- Readiness score ring
+- Student profile summary
+- Eligible upcoming drives
+- Recent interview experiences
+- Tracker activity
+- Quick actions to the key tools
+
+### 3. Resume-JD scorer
+
+The scorer accepts raw resume text and a job description, then returns:
+
+- Match score
+- Matched keywords
+- Missing keywords
+- Suggestions based on repeated JD requirements
+
+### 4. Companies flow
+
+Company cards support:
+
+- Branch eligibility
+- CGPA cutoff visibility
+- Rounds overview
+- Topics asked
+- Drive type and month
+- Add-to-tracker action
+
+### 5. Application tracker
+
+Applications can be moved across stages:
+
+- Applied
+- OA
+- Tech Round 1
+- Tech Round 2
+- HR
+- Offer
+- Rejected
+
+### 6. Interview experiences
+
+Students can:
+
+- Browse experiences with filters
+- Submit anonymized or named experiences
+- Add round-by-round notes
+- Tag topics asked
+- Upvote helpful experiences
+
+### 7. Readiness diagnostic
+
+The readiness flow scores:
+
+- DSA
+- Projects
+- Academics
+- Skills
+
+It also returns:
+
+- Action items
+- Readiness label
+- Company fit suggestions
 
 ## Project Structure
 
+```text
+hireable-Portal/
+|-- backend/
+|   |-- config/
+|   |-- middleware/
+|   |-- models/
+|   |   |-- Application.js
+|   |   |-- Experience.js
+|   |   |-- Job.js
+|   |   |-- TrackerApplication.js
+|   |   `-- User.js
+|   |-- routes/
+|   |   |-- auth.js
+|   |   |-- experiences.js
+|   |   |-- jobs.js
+|   |   |-- readiness.js
+|   |   |-- scorer.js
+|   |   |-- tracker.js
+|   |   `-- users.js
+|   |-- scripts/
+|   |   |-- seed.js
+|   |   `-- set-default-logo.js
+|   |-- utils/
+|   |   |-- readiness.js
+|   |   `-- serializeUser.js
+|   |-- index.js
+|   `-- test.js
+|-- src/
+|   |-- components/
+|   |-- contexts/
+|   |-- data/
+|   |-- lib/
+|   `-- pages/
+|-- index.html
+`-- README.md
 ```
-hireable-portal/
-├── backend/                 # Node.js + Express API
-│   ├── config/             # Database configuration
-│   ├── middleware/         # Auth middleware
-│   ├── routes/             # API routes
-│   │   ├── auth.js        # Signup & login
-│   │   ├── jobs.js        # Job CRUD & applications
-│   │   └── users.js       # User data
-│   ├── index.js           # Server entry
-│   ├── test.js            # DB connection test
-│   └── README.md          # Backend docs
-│
-├── src/                    # React frontend
-│   ├── components/        # UI components
-│   ├── pages/            # Page components
-│   ├── lib/
-│   │   ├── api.ts        # API client
-│   │   └── utils.ts      # Utilities
-│   └── data/             # Mock data (legacy)
-│
-├── SETUP.md              # Detailed setup guide
-└── README.md             # This file
-```
 
-### Backend Scripts
+## Scripts
 
-```
-backend/scripts/
-└── set-default-logo.js   # Migration to backfill missing company logos
-```
-
-## API Documentation
-
-See `backend/README.md` for complete API documentation.
-
-### Key Endpoints
-
-- `POST /api/auth/signup` - Create account
-- `POST /api/auth/login` - Login
-- `GET /api/jobs` - List jobs (with filters)
-- `POST /api/jobs` - Create job (auth required)
-- `POST /api/jobs/:id/apply` - Apply to job (auth required)
-- `GET /api/users/:id/applications` - View applications (auth required)
-
-#### Apply Body Fields
-- `applicantName` (string, required)
-- `phone` (string, required)
-- `resumeUrl` (string, required)
-- `college` (string, optional)
-- `graduationYear` (number, optional)
-
-## Usage Examples
-
-### Create Account
+### Frontend
 
 ```bash
-curl -X POST http://localhost:5000/api/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "securepass123",
-    "name": "John Doe"
-  }'
+npm run dev
+npm run build
+npm run build:dev
+npm run preview
+npm run lint
 ```
 
-### Login
-
-```bash
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "securepass123"
-  }'
-```
-
-### Browse Jobs
-
-```bash
-# All jobs
-curl http://localhost:5000/api/jobs
-
-# Filter by location
-curl "http://localhost:5000/api/jobs?location=Remote"
-
-# Filter by type
-curl "http://localhost:5000/api/jobs?type=Full-time"
-```
-
-### Post a Job
-
-```bash
-curl -X POST http://localhost:5000/api/jobs \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "title": "Senior Developer",
-    "company": "Tech Corp",
-    "companyLogo": "https://example.com/logo.png",
-    "location": "Remote",
-    "type": "Full-time",
-    "salary": "$100k - $150k",
-    "description": "We need an experienced developer",
-    "tags": "React"
-  }'
-```
-
-### Apply to a Job
-
-```bash
-curl -X POST http://localhost:5000/api/jobs/JOB_ID/apply \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "applicantName": "Student Name",
-    "phone": "9999999999",
-    "college": "XYZ",
-    "graduationYear": 2024,
-    "resumeUrl": "https://example.com/resume.pdf"
-  }'
-```
-
-## Development
-
-### Frontend Development
-
-```bash
-npm run dev          # Start dev server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-```
-
-### Backend Development
+### Backend
 
 ```bash
 cd backend
-npm run dev          # Start with nodemon (auto-reload)
-npm start            # Start production server
-node test.js         # Test database connection
+npm run dev
+npm start
+npm test
 ```
 
-## Security Features
+## API Summary
 
-- Password hashing with bcrypt (10 rounds)
-- JWT-based authentication (7-day expiry)
-- Protected API endpoints
-- CORS configuration
-- Input validation
+### Auth
 
-## Data Migration
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
 
-Use the provided migration script to backfill missing company logos:
+### User
 
-```bash
-# Ensure backend/.env contains MONGO_URI and JWT_SECRET
-node backend/scripts/set-default-logo.js
-```
+- `GET /api/users/me`
+- `PUT /api/users/me/profile`
+- `GET /api/users/:id/applications`
 
-The script sets a default logo URL for jobs where `companyLogo` does not exist and prints the number of updated documents. The default is `https://example.com/default-logo.png`.
+### Jobs / Companies
 
-## Deployment
+- `GET /api/jobs`
+- `POST /api/jobs`
+- `POST /api/jobs/:id/apply`
 
-### Frontend Deployment (Vercel)
+### Resume Scorer
+
+- `POST /api/scorer/analyze`
+
+### Tracker
+
+- `GET /api/tracker`
+- `POST /api/tracker`
+- `PATCH /api/tracker/:id`
+- `DELETE /api/tracker/:id`
+
+### Experiences
+
+- `GET /api/experiences`
+- `POST /api/experiences`
+- `POST /api/experiences/:id/upvote`
+
+### Readiness
+
+- `POST /api/readiness/score`
+
+For request and response details, see [backend/README.md](./backend/README.md).
+
+## Verification
+
+Useful checks:
 
 ```bash
 npm run build
-# Deploy dist/ folder to Vercel
+
+cd backend
+npm test
 ```
 
-### Backend Deployment (Railway/Render/Heroku)
+## Notes
 
-1. Set environment variables on hosting platform
-2. Update CORS origins in `backend/index.js`
-3. Deploy backend folder
+- JWT auth middleware and MongoDB connection flow are preserved from the original app and extended rather than replaced.
+- `src/lib/api.ts` uses `VITE_API_URL` when provided, otherwise defaults to `http://localhost:5000`.
+- The backend allows CORS from `CLIENT_URL` and still includes the old deployed frontend origin for compatibility.
 
-### Environment Variables
+## Known Follow-up Opportunities
 
-Make sure to set these in production:
-
-- `MONGO_URI`
-- `JWT_SECRET` (use a strong random value)
-- `PORT`
-
-Update frontend API URL in `src/lib/api.ts` to production backend URL.
-
-## Troubleshooting
-
-### Backend won't start
-
-- Check `.env` file exists in backend folder
-- Ensure port 5000 is available
-
-### Database connection errors
-
-- Run `node backend/test.js` to verify connection
-- Verify `MONGO_URI` is correct and database is reachable
-
-### Frontend API errors
-
-- Ensure backend is running on port 5000
-- Check browser console for CORS errors
-- Verify token is stored in localStorage
-
-See `SETUP.md` for detailed troubleshooting steps.
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-MIT
-
-## Author
-
-Sundram Rai
-
----
-
-For detailed setup instructions, see [SETUP.md](./SETUP.md)
-
-For backend API documentation, see [backend/README.md](./backend/README.md)
-
-For deployment guide, see [backend/DEPLOYMENT.md](./backend/DEPLOYMENT.md)
+- Persist per-company resume match history so companies can show prior scorer results directly
+- Add browser-level QA or screenshot-based verification for the new flows
+- Refresh `SETUP.md` if you want a fully synchronized long-form setup guide in addition to this README
