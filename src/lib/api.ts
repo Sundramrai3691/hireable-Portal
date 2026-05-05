@@ -1,4 +1,7 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const configuredBaseUrl = import.meta.env.VITE_API_URL?.trim();
+const BASE_URL =
+  configuredBaseUrl ||
+  (import.meta.env.DEV ? "" : window.location.origin);
 const API_BASE_URL = `${BASE_URL}/api`;
 
 export type Branch = "CS" | "EE" | "ECE" | "ME" | "CE" | "Other";
@@ -176,7 +179,7 @@ class ApiClient {
     } catch (error) {
       if (error instanceof TypeError) {
         throw new Error(
-          "Unable to reach the backend. Check that the API server is running and CORS allows this origin.",
+          "Unable to reach the backend. Start the backend server and verify the API URL or dev proxy configuration.",
         );
       }
       throw error;

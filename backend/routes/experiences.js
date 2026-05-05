@@ -86,7 +86,7 @@ router.post("/:id/upvote", authMiddleware, async (req, res) => {
     const experience = await Experience.findByIdAndUpdate(
       req.params.id,
       { $inc: { upvotes: 1 } },
-      { new: true },
+      { returnDocument: "after" },
     );
 
     if (!experience) {
