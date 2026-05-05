@@ -1,4 +1,75 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+
+const studentProfileSchema = new mongoose.Schema(
+  {
+    college: {
+      type: String,
+      default: "",
+    },
+    branch: {
+      type: String,
+      enum: ["CS", "EE", "ECE", "ME", "CE", "Other"],
+      default: "Other",
+    },
+    year: {
+      type: Number,
+      enum: [2, 3, 4],
+      default: 3,
+    },
+    cgpa: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 10,
+    },
+    leetcodeRating: {
+      type: Number,
+      default: null,
+    },
+    problemsSolved: {
+      type: Number,
+      default: 0,
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    projectCount: {
+      type: Number,
+      default: 0,
+    },
+    deployedProjectCount: {
+      type: Number,
+      default: 0,
+    },
+    hasInternship: {
+      type: Boolean,
+      default: false,
+    },
+    openSourceContributions: {
+      type: Boolean,
+      default: false,
+    },
+    systemDesign: {
+      type: String,
+      enum: ["none", "basic", "comfortable"],
+      default: "none",
+    },
+    comfortableTopics: {
+      type: [String],
+      default: [],
+    },
+    weakTopics: {
+      type: [String],
+      default: [],
+    },
+    targetCompanies: {
+      type: [String],
+      default: [],
+    },
+  },
+  { _id: false },
+);
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -16,7 +87,23 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: 'candidate',
+    default: "candidate",
+  },
+  profileCompleted: {
+    type: Boolean,
+    default: false,
+  },
+  studentProfile: {
+    type: studentProfileSchema,
+    default: null,
+  },
+  latestReadinessScore: {
+    type: Number,
+    default: null,
+  },
+  latestReadinessLevel: {
+    type: String,
+    default: null,
   },
   createdAt: {
     type: Date,
@@ -24,20 +111,14 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Transform _id to id and remove __v and passwordHash when converting to JSON
-userSchema.set('toJSON', {
+userSchema.set("toJSON", {
   virtuals: true,
   versionKey: false,
   transform: function (doc, ret) {
     ret.id = ret._id;
     delete ret._id;
-    // Map camelCase to snake_case if necessary for frontend compatibility,
-    // but auth routes explicitly construct the response, so it's less critical here
-    // except for consistency.
-    // However, the User model prompt specifically asked for camelCase fields.
-    // We'll keep the internal fields camelCase.
-    delete ret.passwordHash; // Don't return password hash
+    delete ret.passwordHash;
   },
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

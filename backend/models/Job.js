@@ -33,6 +33,62 @@ const jobSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  eligibleBranches: {
+    type: [String],
+    default: [],
+  },
+  minCGPA: {
+    type: Number,
+    default: 0,
+  },
+  typicalRounds: {
+    type: [String],
+    default: [],
+  },
+  ctcRange: {
+    min: {
+      type: Number,
+      default: 0,
+    },
+    max: {
+      type: Number,
+      default: 0,
+    },
+  },
+  driveType: {
+    type: String,
+    enum: ["on-campus", "off-campus", "pool"],
+    default: "on-campus",
+  },
+  expectedDriveMonth: {
+    type: String,
+    default: "",
+  },
+  allowsAllBranches: {
+    type: Boolean,
+    default: false,
+  },
+  hasBond: {
+    type: Boolean,
+    default: false,
+  },
+  bondDetails: {
+    type: String,
+    default: "",
+  },
+  historicallyVisited: {
+    type: Boolean,
+    default: true,
+  },
+  topicsAsked: {
+    type: [String],
+    default: [],
+  },
+  difficulty: {
+    type: String,
+    enum: ["Easy", "Medium", "Hard"],
+    default: "Medium",
+  },
   isActive: {
     type: Boolean,
     default: true,
@@ -48,7 +104,6 @@ const jobSchema = new mongoose.Schema({
   },
 });
 
-// Transform to match frontend expectations (snake_case)
 jobSchema.set("toJSON", {
   virtuals: true,
   versionKey: false,
@@ -56,7 +111,6 @@ jobSchema.set("toJSON", {
     ret.id = ret._id;
     delete ret._id;
 
-    // Map camelCase to snake_case for frontend compatibility
     ret.is_active = ret.isActive;
     delete ret.isActive;
 
@@ -66,9 +120,12 @@ jobSchema.set("toJSON", {
     ret.created_at = ret.createdAt;
     delete ret.createdAt;
 
-    // Add frontend compatibility fields
     ret.skills = ret.tags;
     ret.posted = ret.created_at;
+
+    if (!ret.ctcRange) {
+      ret.ctcRange = { min: 0, max: 0 };
+    }
   },
 });
 

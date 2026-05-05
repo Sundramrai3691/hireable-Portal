@@ -5,32 +5,74 @@ const authMiddleware = require("../middleware/auth");
 
 const router = express.Router();
 
+function parseList(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { title, company, companyLogo, location, tags } = req.body;
+    const {
+      title,
+      company,
+      companyLogo,
+      location,
+      type,
+      salary,
+      description,
+      tags,
+      skills,
+      eligibleBranches,
+      minCGPA,
+      typicalRounds,
+      ctcRange,
+      driveType,
+      expectedDriveMonth,
+      allowsAllBranches,
+      hasBond,
+      bondDetails,
+      historicallyVisited,
+      topicsAsked,
+      difficulty,
+    } = req.body;
 
-    if (!title) {
-      return res.status(400).json({ error: "Title is required" });
+    if (!title || !company) {
+      return res.status(400).json({ error: "Title and company are required" });
     }
-
-    const tagsArr = Array.isArray(tags)
-      ? tags
-      : typeof tags === "string"
-        ? tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean)
-        : [];
 
     const job = new Job({
       title,
       company,
       companyLogo: typeof companyLogo === "string" ? companyLogo : null,
       location: location || "Remote",
-      type: "Full-time",
-      salary: "Not specified",
-      description: "",
-      tags: tagsArr,
+      type: type || "Full-time",
+      salary: salary || "Not specified",
+      description: description || "",
+      tags: parseList(tags || skills),
+      eligibleBranches: parseList(eligibleBranches),
+      minCGPA: Number(minCGPA || 0),
+      typicalRounds: parseList(typicalRounds),
+      ctcRange: {
+        min: Number(ctcRange?.min || 0),
+        max: Number(ctcRange?.max || 0),
+      },
+      driveType: driveType || "on-campus",
+      expectedDriveMonth: expectedDriveMonth || "",
+      allowsAllBranches: Boolean(allowsAllBranches),
+      hasBond: Boolean(hasBond),
+      bondDetails: bondDetails || "",
+      historicallyVisited:
+        historicallyVisited === undefined ? true : Boolean(historicallyVisited),
+      topicsAsked: parseList(topicsAsked),
+      difficulty: difficulty || "Medium",
       postedBy: req.user.id,
       isActive: true,
     });
@@ -45,26 +87,19 @@ router.post("/", authMiddleware, async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const { location, tag } = req.query;
+    const { location, tag, driveType, difficulty, month } = req.query;
 
     const filter = {
       isActive: true,
       ...(location ? { location } : {}),
       ...(tag ? { tags: tag } : {}),
+      ...(driveType ? { driveType } : {}),
+      ...(difficulty ? { difficulty } : {}),
+      ...(month ? { expectedDriveMonth: month } : {}),
     };
 
-    const jobs = await Job.find(filter).sort({ createdAt: -1 }).lean();
-
-    const normalized = jobs.map((job) => {
-      job.id = job._id;
-      delete job._id;
-      if (typeof job.companyLogo === "undefined") {
-        job.companyLogo = null;
-      }
-      return job;
-    });
-
-    res.json(normalized);
+    const jobs = await Job.find(filter).sort({ createdAt: -1 });
+    res.json(jobs.map((job) => job.toJSON()));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
