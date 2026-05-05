@@ -37,7 +37,6 @@ const applicationSchema = new mongoose.Schema({
   },
 });
 
-// Transform to match frontend expectations
 applicationSchema.set("toJSON", {
   virtuals: true,
   versionKey: false,
@@ -45,10 +44,10 @@ applicationSchema.set("toJSON", {
     ret.id = ret._id;
     delete ret._id;
 
-    ret.user_id = ret.user; // Supabase likely returned user_id
+    ret.user_id = ret.user;
     delete ret.user;
 
-    ret.jobs = ret.job; // Map to 'jobs' to match frontend expectation
+    ret.jobs = ret.job;
     delete ret.job;
 
     ret.applied_at = ret.appliedAt;
