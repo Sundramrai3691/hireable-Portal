@@ -1,32 +1,27 @@
 [
   {
     "id": 1,
-    "question": "How do I apply for a job?",
-    "answer": "Click on any job card and hit 'Apply Now' to start the process. You'll be able to submit your application with your resume and cover letter."
+    "question": "Which companies can I sit for as an EE student?",
+    "answer": "PlaceMate checks your branch and CGPA against each drive's cutoff, then highlights which companies are open to you right now."
   },
   {
     "id": 2,
-    "question": "Is Hireable free to use?",
-    "answer": "Yes! Hireable is completely free for job seekers. You can search, filter, and apply to unlimited jobs without any cost."
+    "question": "How does the Resume-JD scorer work?",
+    "answer": "Paste your resume and a job description, and PlaceMate compares technical keywords, missing skills, and repeated requirements to estimate match strength."
   },
   {
     "id": 3,
-    "question": "How often are new jobs posted?",
-    "answer": "New jobs are posted daily by our partner companies. We recommend checking back regularly or setting up job alerts to never miss an opportunity."
+    "question": "Can I submit my interview experience after placement?",
+    "answer": "Yes. You can share your rounds, topics asked, and tips so juniors can prepare smarter for the same company."
   },
   {
     "id": 4,
-    "question": "Can I post a job for my company?",
-    "answer": "Absolutely! Use our 'Post Job' feature to reach thousands of qualified candidates. Simply fill out the job details and your posting will go live immediately."
+    "question": "Is the readiness score based on real placement criteria?",
+    "answer": "The score weights DSA, projects, academics, and skills using common campus placement patterns. It is meant to guide your prep, not replace company-specific criteria."
   },
   {
     "id": 5,
-    "question": "Do you support remote work opportunities?",
-    "answer": "Yes! We have a dedicated filter for remote work. Many of our top companies offer fully remote positions across various industries and skill levels."
-  },
-  {
-    "id": 6,
-    "question": "How do I filter jobs by salary range?",
-    "answer": "Use our advanced filters to specify your desired salary range, job type, location, and required skills. This helps you find positions that match your expectations."
+    "question": "How do I track which round I'm in for each company?",
+    "answer": "Use the tracker board to move each application between OA, technical, HR, offer, and rejected stages while keeping notes and next actions in one place."
   }
 ]
