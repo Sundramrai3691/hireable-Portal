@@ -1,16 +1,17 @@
-const express = require("express");
+﻿const express = require("express");
 const authMiddleware = require("../middleware/auth");
 const Experience = require("../models/Experience");
+const { buildDateCursorPageQuery, buildPage } = require("../utils/cursorPagination");
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const { company, role, year, outcome, topic, search } = req.query;
+    const { company, role, year, outcome, topic, search, limit, cursor } = req.query;
     const filter = {};
 
     if (company) {
-      filter.companyName = new RegExp(company, "i");
+      filter.companyName = String(company);
     }
     if (role) {
       filter.role = new RegExp(role, "i");
@@ -32,10 +33,18 @@ router.get("/", async (req, res) => {
       ];
     }
 
-    const experiences = await Experience.find(filter).sort({ createdAt: -1 }).limit(100);
-    res.json(experiences.map((item) => item.toJSON()));
+    const page = await buildDateCursorPageQuery(Experience, filter, {
+      cursor,
+      limit,
+      dateField: "createdAt",
+    });
+    const experiences = await Experience.find(page.filter)
+      .sort(page.sort)
+      .limit(page.limit + 1);
+
+    res.json(buildPage(experiences, page.limit, (item) => item.toJSON()));
   } catch (error) {
-    res.status(500).json({ error: error.message || "Failed to fetch experiences." });
+    res.status(error.statusCode || 500).json({ error: error.message || "Failed to fetch experiences." });
   }
 });
 

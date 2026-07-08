@@ -106,6 +106,8 @@ export interface TrackerEntry {
   nextActionDate?: string | null;
   notes?: string;
   offerCTC?: number | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Experience {
@@ -124,6 +126,12 @@ export interface Experience {
   isAnonymous: boolean;
   upvotes: number;
   createdAt: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 export interface ScorerResponse {
@@ -244,16 +252,16 @@ class ApiClient {
     return user;
   }
 
-  async getJobs(filters?: Record<string, string | number | boolean | undefined>): Promise<Job[]> {
+  async getJobs(filters?: Record<string, string | number | boolean | undefined | null>): Promise<PaginatedResponse<Job>> {
     const params = new URLSearchParams();
     Object.entries(filters || {}).forEach(([key, value]) => {
-      if (value !== undefined && value !== "" && value !== false) {
+      if (value !== undefined && value !== null && value !== "" && value !== false && value !== "all") {
         params.append(key, String(value));
       }
     });
 
     const queryString = params.toString();
-    return this.request<Job[]>(`/jobs${queryString ? `?${queryString}` : ""}`, {
+    return this.request<PaginatedResponse<Job>>(`/jobs${queryString ? `?${queryString}` : ""}`, {
       method: "GET",
       headers: {},
     });
@@ -296,8 +304,16 @@ class ApiClient {
     });
   }
 
-  getTracker(): Promise<TrackerEntry[]> {
-    return this.request<TrackerEntry[]>("/tracker", {
+  getTracker(filters?: Record<string, string | number | boolean | undefined | null>): Promise<PaginatedResponse<TrackerEntry>> {
+    const params = new URLSearchParams();
+    Object.entries(filters || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "" && value !== false) {
+        params.append(key, String(value));
+      }
+    });
+
+    const queryString = params.toString();
+    return this.request<PaginatedResponse<TrackerEntry>>(`/tracker${queryString ? `?${queryString}` : ""}`, {
       method: "GET",
       headers: {},
     });
@@ -323,15 +339,15 @@ class ApiClient {
     });
   }
 
-  getExperiences(filters?: Record<string, string | number | undefined>): Promise<Experience[]> {
+  getExperiences(filters?: Record<string, string | number | undefined | null>): Promise<PaginatedResponse<Experience>> {
     const params = new URLSearchParams();
     Object.entries(filters || {}).forEach(([key, value]) => {
-      if (value !== undefined && value !== "") {
+      if (value !== undefined && value !== null && value !== "") {
         params.append(key, String(value));
       }
     });
     const queryString = params.toString();
-    return this.request<Experience[]>(`/experiences${queryString ? `?${queryString}` : ""}`, {
+    return this.request<PaginatedResponse<Experience>>(`/experiences${queryString ? `?${queryString}` : ""}`, {
       method: "GET",
       headers: {},
     });

@@ -1,7 +1,8 @@
-const express = require("express");
+﻿const express = require("express");
 const Job = require("../models/Job");
 const Application = require("../models/Application");
 const authMiddleware = require("../middleware/auth");
+const { buildDateCursorPageQuery, buildPage } = require("../utils/cursorPagination");
 
 const router = express.Router();
 
@@ -87,7 +88,20 @@ router.post("/", authMiddleware, async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const { location, tag, driveType, difficulty, month } = req.query;
+    const {
+      location,
+      tag,
+      driveType,
+      difficulty,
+      month,
+      branch,
+      maxCgpa,
+      topic,
+      search,
+      company,
+      limit,
+      cursor,
+    } = req.query;
 
     const filter = {
       isActive: true,
@@ -96,12 +110,41 @@ router.get("/", async (req, res) => {
       ...(driveType ? { driveType } : {}),
       ...(difficulty ? { difficulty } : {}),
       ...(month ? { expectedDriveMonth: month } : {}),
+      ...(topic ? { topicsAsked: topic } : {}),
+      ...(company ? { company: String(company) } : {}),
     };
 
-    const jobs = await Job.find(filter).sort({ createdAt: -1 });
-    res.json(jobs.map((job) => job.toJSON()));
+    if (maxCgpa) {
+      filter.minCGPA = { $lte: Number(maxCgpa) };
+    }
+
+    if (branch) {
+      filter.$or = [
+        { allowsAllBranches: true },
+        { eligibleBranches: branch },
+      ];
+    }
+
+    if (search) {
+      const searchFilter = [
+        { company: new RegExp(search, "i") },
+        { title: new RegExp(search, "i") },
+        { tags: new RegExp(search, "i") },
+        { topicsAsked: new RegExp(search, "i") },
+      ];
+      filter.$and = filter.$or ? [{ $or: filter.$or }, { $or: searchFilter }] : [{ $or: searchFilter }];
+      delete filter.$or;
+    }
+
+    const page = await buildDateCursorPageQuery(Job, filter, {
+      cursor,
+      limit,
+      dateField: "createdAt",
+    });
+    const jobs = await Job.find(page.filter).sort(page.sort).limit(page.limit + 1);
+    res.json(buildPage(jobs, page.limit, (job) => job.toJSON()));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.statusCode || 500).json({ error: error.message });
   }
 });
 

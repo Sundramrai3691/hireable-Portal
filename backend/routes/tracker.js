@@ -1,18 +1,30 @@
-const express = require("express");
+﻿const express = require("express");
 const authMiddleware = require("../middleware/auth");
 const TrackerApplication = require("../models/TrackerApplication");
+const { buildDateCursorPageQuery, buildPage } = require("../utils/cursorPagination");
 
 const router = express.Router();
 
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const items = await TrackerApplication.find({ userId: req.user.id }).sort({
-      updatedAt: -1,
-      createdAt: -1,
+    const { limit, cursor, stage } = req.query;
+    const filter = {
+      userId: req.user.id,
+      ...(stage ? { currentStage: stage } : {}),
+    };
+
+    const page = await buildDateCursorPageQuery(TrackerApplication, filter, {
+      cursor,
+      limit,
+      dateField: "updatedAt",
     });
-    res.json(items.map((item) => item.toJSON()));
+    const items = await TrackerApplication.find(page.filter)
+      .sort(page.sort)
+      .limit(page.limit + 1);
+
+    res.json(buildPage(items, page.limit, (item) => item.toJSON()));
   } catch (error) {
-    res.status(500).json({ error: error.message || "Failed to fetch tracker entries." });
+    res.status(error.statusCode || 500).json({ error: error.message || "Failed to fetch tracker entries." });
   }
 });
 
