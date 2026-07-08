@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Loader2, Plus, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,9 @@ export default function Experiences() {
   const [searchParams] = useSearchParams();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   const [open, setOpen] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [filters, setFilters] = useState({
@@ -41,23 +44,51 @@ export default function Experiences() {
     isAnonymous: true,
   });
 
-  useEffect(() => {
-    apiClient.getExperiences().then(setExperiences).finally(() => setLoading(false));
-  }, []);
+  const loadExperiences = useCallback(
+    async (cursor?: string | null) => {
+      if (cursor) {
+        setIsLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
 
-  const filtered = useMemo(
-    () =>
-      experiences.filter((experience) => {
-        const haystack = `${experience.companyName} ${experience.role} ${experience.topicsAsked.join(" ")} ${experience.tips}`.toLowerCase();
-        const matchesSearch = !filters.search || haystack.includes(filters.search.toLowerCase());
-        const matchesRole = !filters.role || experience.role.toLowerCase().includes(filters.role.toLowerCase());
-        const matchesYear = !filters.year || String(experience.year) === filters.year;
-        const matchesOutcome = !filters.outcome || experience.outcome === filters.outcome;
-        const matchesTopic = !filters.topic || experience.topicsAsked.includes(filters.topic);
-        return matchesSearch && matchesRole && matchesYear && matchesOutcome && matchesTopic;
-      }),
-    [experiences, filters],
+      try {
+        const response = await apiClient.getExperiences({
+          limit: 20,
+          cursor,
+          search: filters.search,
+          role: filters.role,
+          year: filters.year,
+          outcome: filters.outcome,
+          topic: filters.topic,
+        });
+
+        setExperiences((prev) => {
+          if (!cursor) {
+            return response.data;
+          }
+          const existingIds = new Set(prev.map((item) => item.id));
+          return [...prev, ...response.data.filter((item) => !existingIds.has(item.id))];
+        });
+        setNextCursor(response.nextCursor);
+        setHasMore(response.hasMore);
+      } catch (error) {
+        toast({
+          title: "Could not load experiences",
+          description: error instanceof Error ? error.message : "Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [filters, toast],
   );
+
+  useEffect(() => {
+    loadExperiences(null);
+  }, [loadExperiences]);
 
   const submitExperience = async () => {
     if (!isAuthenticated) {
@@ -242,41 +273,51 @@ export default function Experiences() {
 
         {loading ? (
           <div className="text-center text-slate-300">Loading experiences...</div>
-        ) : filtered.length ? (
-          <div className="columns-1 gap-6 md:columns-2 xl:columns-3">
-            {filtered.map((experience) => (
-              <div key={experience.id} className="card mb-6 break-inside-avoid p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">{experience.companyName}</h2>
-                    <p className="text-sm text-slate-400">{experience.role}</p>
+        ) : experiences.length ? (
+          <>
+            <div className="columns-1 gap-6 md:columns-2 xl:columns-3">
+              {experiences.map((experience) => (
+                <div key={experience.id} className="card mb-6 break-inside-avoid p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-semibold text-white">{experience.companyName}</h2>
+                      <p className="text-sm text-slate-400">{experience.role}</p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      experience.outcome === "offer"
+                        ? "border border-emerald-400/20 bg-emerald-500/12 text-emerald-200"
+                        : experience.outcome === "reject"
+                        ? "border border-rose-400/20 bg-rose-500/12 text-rose-200"
+                        : "border border-amber-400/20 bg-amber-500/12 text-amber-200"
+                    }`}>
+                      {experience.outcome}
+                    </span>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    experience.outcome === "offer"
-                      ? "border border-emerald-400/20 bg-emerald-500/12 text-emerald-200"
-                      : experience.outcome === "reject"
-                      ? "border border-rose-400/20 bg-rose-500/12 text-rose-200"
-                      : "border border-amber-400/20 bg-amber-500/12 text-amber-200"
-                  }`}>
-                    {experience.outcome}
-                  </span>
+                  <p className="mt-2 text-sm text-slate-400">{experience.branch}, {experience.college} | {experience.month} {experience.year}</p>
+                  <p className="mt-4 text-sm text-slate-300">Rounds: {experience.rounds.map((round) => round.roundType).join(" -> ")}</p>
+                  <p className="mt-4 text-sm leading-7 text-slate-300">{experience.rounds[0]?.description}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {experience.topicsAsked.map((topic) => (
+                      <span key={topic} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">{topic}</span>
+                    ))}
+                  </div>
+                  <p className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">{experience.tips}</p>
+                  <Button variant="outline" className="mt-4 w-full" onClick={() => upvote(experience.id)}>
+                    <ThumbsUp className="h-4 w-4" />
+                    Upvote ({experience.upvotes})
+                  </Button>
                 </div>
-                <p className="mt-2 text-sm text-slate-400">{experience.branch}, {experience.college} | {experience.month} {experience.year}</p>
-                <p className="mt-4 text-sm text-slate-300">Rounds: {experience.rounds.map((round) => round.roundType).join(" -> ")}</p>
-                <p className="mt-4 text-sm leading-7 text-slate-300">{experience.rounds[0]?.description}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {experience.topicsAsked.map((topic) => (
-                    <span key={topic} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">{topic}</span>
-                  ))}
-                </div>
-                <p className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">{experience.tips}</p>
-                <Button variant="outline" className="mt-4 w-full" onClick={() => upvote(experience.id)}>
-                  <ThumbsUp className="h-4 w-4" />
-                  Upvote ({experience.upvotes})
+              ))}
+            </div>
+            {hasMore ? (
+              <div className="mt-2 flex justify-center">
+                <Button variant="outline" onClick={() => loadExperiences(nextCursor)} disabled={isLoadingMore || !nextCursor}>
+                  {isLoadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Load more
                 </Button>
               </div>
-            ))}
-          </div>
+            ) : null}
+          </>
         ) : (
           <EmptyState
             icon={Plus}

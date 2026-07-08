@@ -3,8 +3,31 @@ const Application = require("../models/Application");
 const User = require("../models/User");
 const authMiddleware = require("../middleware/auth");
 const { serializeUser } = require("../utils/serializeUser");
+const { buildDateCursorPageQuery, buildPage } = require("../utils/cursorPagination");
 
 const router = express.Router();
+
+function serializeApplication(application) {
+  return {
+    id: application._id,
+    appliedAt: application.appliedAt,
+    applicantName: application.applicantName || null,
+    phone: application.phone || null,
+    college: application.college ?? null,
+    graduationYear: typeof application.graduationYear === "number" ? application.graduationYear : null,
+    resumeUrl: application.resumeUrl || null,
+    job: application.job
+      ? {
+          id: application.job._id,
+          title: application.job.title,
+          company: application.job.company,
+          location: application.job.location,
+          tags: application.job.tags || [],
+          companyLogo: typeof application.job.companyLogo !== "undefined" ? application.job.companyLogo : null,
+        }
+      : null,
+  };
+}
 
 router.get("/me", authMiddleware, async (req, res) => {
   try {
@@ -74,39 +97,26 @@ router.get("/:id/applications", authMiddleware, async (req, res) => {
   try {
     const requestedUserId = req.params.id;
     const currentUserId = req.user.id;
+    const { limit, cursor } = req.query;
 
     if (requestedUserId !== currentUserId) {
       return res.status(403).json({ error: "Access denied" });
     }
 
-    const applications = await Application.find({ user: currentUserId })
-      .sort({ appliedAt: -1 })
+    const page = await buildDateCursorPageQuery(
+      Application,
+      { user: currentUserId },
+      { cursor, limit, dateField: "appliedAt" },
+    );
+    const applications = await Application.find(page.filter)
+      .sort(page.sort)
+      .limit(page.limit + 1)
       .populate({ path: "job", select: "title company location tags companyLogo" })
       .lean();
 
-    const result = applications.map((a) => ({
-      id: a._id,
-      appliedAt: a.appliedAt,
-      applicantName: a.applicantName || null,
-      phone: a.phone || null,
-      college: a.college ?? null,
-      graduationYear: typeof a.graduationYear === "number" ? a.graduationYear : null,
-      resumeUrl: a.resumeUrl || null,
-      job: a.job
-        ? {
-            id: a.job._id,
-            title: a.job.title,
-            company: a.job.company,
-            location: a.job.location,
-            tags: a.job.tags || [],
-            companyLogo: typeof a.job.companyLogo !== "undefined" ? a.job.companyLogo : null,
-          }
-        : null,
-    }));
-
-    res.json(result);
+    res.json(buildPage(applications, page.limit, serializeApplication));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.statusCode || 500).json({ error: error.message });
   }
 });
 

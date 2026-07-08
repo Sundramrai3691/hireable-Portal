@@ -1,4 +1,4 @@
-﻿const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;

@@ -25,9 +25,9 @@ export default function Dashboard() {
     ])
       .then(([, jobsData, experienceData, trackerData]) => {
         if (!mounted) return;
-        setJobs(jobsData);
-        setExperiences(experienceData.slice(0, 4));
-        setTracker(trackerData.slice(0, 4));
+        setJobs(jobsData.data);
+        setExperiences(experienceData.data.slice(0, 4));
+        setTracker(trackerData.data.slice(0, 4));
       })
       .finally(() => mounted && setIsLoading(false));
     return () => {

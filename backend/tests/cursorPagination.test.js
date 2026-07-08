@@ -1,4 +1,4 @@
-﻿const assert = require("assert");
+const assert = require("assert");
 const mongoose = require("mongoose");
 const { paginateSortedItems } = require("../utils/cursorPagination");
 

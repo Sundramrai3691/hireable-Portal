@@ -1,4 +1,4 @@
-﻿const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 const Experience = require("../models/Experience");
@@ -52,8 +52,8 @@ async function createIndexes() {
       { name: "jobs_active_branch_createdAt_id" },
     ),
     Job.collection.createIndex(
-      { isActive: 1, minCGPA: 1, createdAt: -1, _id: -1 },
-      { name: "jobs_active_cgpa_createdAt_id" },
+      { isActive: 1, createdAt: -1, _id: -1, minCGPA: 1 },
+      { name: "jobs_active_createdAt_id_cgpa" },
     ),
 
     TrackerApplication.collection.createIndex(

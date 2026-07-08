@@ -1,9 +1,10 @@
-﻿const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 const Experience = require("../models/Experience");
 const Job = require("../models/Job");
 const TrackerApplication = require("../models/TrackerApplication");
+const Application = require("../models/Application");
 
 function collectStages(plan, stages = []) {
   if (!plan || typeof plan !== "object") {
@@ -63,6 +64,18 @@ async function runExplains() {
     );
   } else {
     console.log("\nApplication tracker feed skipped: no tracker documents found.");
+  }
+
+  const applicationSample = await Application.findOne({}).select({ user: 1 }).lean();
+  if (applicationSample) {
+    await explainQuery(
+      "User applications feed",
+      Application.collection,
+      { user: applicationSample.user },
+      { appliedAt: -1, _id: -1 },
+    );
+  } else {
+    console.log("\nUser applications feed skipped: no application documents found.");
   }
 }
 

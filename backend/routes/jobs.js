@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const Job = require("../models/Job");
 const Application = require("../models/Application");
 const authMiddleware = require("../middleware/auth");
@@ -119,9 +119,10 @@ router.get("/", async (req, res) => {
     }
 
     if (branch) {
+      const branches = parseList(branch);
       filter.$or = [
         { allowsAllBranches: true },
-        { eligibleBranches: branch },
+        { eligibleBranches: { $in: branches } },
       ];
     }
 

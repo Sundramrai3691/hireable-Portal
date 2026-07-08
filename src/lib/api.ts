@@ -290,8 +290,16 @@ class ApiClient {
     });
   }
 
-  getUserApplications(userId: string): Promise<Application[]> {
-    return this.request<Application[]>(`/users/${userId}/applications`, {
+  getUserApplications(userId: string, filters?: Record<string, string | number | undefined | null>): Promise<PaginatedResponse<Application>> {
+    const params = new URLSearchParams();
+    Object.entries(filters || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        params.append(key, String(value));
+      }
+    });
+
+    const queryString = params.toString();
+    return this.request<PaginatedResponse<Application>>(`/users/${userId}/applications${queryString ? `?${queryString}` : ""}`, {
       method: "GET",
       headers: {},
     });

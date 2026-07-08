@@ -264,6 +264,29 @@ npm start
 npm test
 ```
 
+
+## Pagination And Indexing
+
+List endpoints for company drives, interview experiences, tracker entries, and user applications use cursor-based pagination with `?limit=20&cursor=<lastSeenId>` and return `{ data, nextCursor, hasMore }`. The cursor id is resolved to the document's indexed sort timestamp, then the next page resumes with `(sortTimestamp < lastTimestamp) OR (same timestamp AND _id < lastSeenId)`, so pagination matches the actual sort order and avoids duplicate/skipped rows.
+
+This is intentionally cursor-based rather than `skip`/`limit`: skip has to scan and discard prior rows on every page and becomes slower on deep pages, while cursor pagination uses indexed sort fields and stays stable when documents are inserted or updated between page loads.
+
+Create the supporting MongoDB indexes on a fresh database:
+
+```bash
+cd backend
+npm run indexes:create
+```
+
+Verify the paginated queries use indexes instead of collection scans:
+
+```bash
+cd backend
+npm run indexes:explain
+```
+
+The explain script prints the winning plan stages and should show `IXSCAN` for the paginated feed queries after indexes are created.
+
 ## API Summary
 
 ### Auth

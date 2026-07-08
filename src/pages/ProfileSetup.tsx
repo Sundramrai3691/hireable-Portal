@@ -52,7 +52,7 @@ export default function ProfileSetup() {
   }, [navigate, user?.profileCompleted]);
 
   useEffect(() => {
-    apiClient.getJobs().then(setCompanies).catch(() => setCompanies([]));
+    apiClient.getJobs({ limit: 100 }).then((response) => setCompanies(response.data)).catch(() => setCompanies([]));
   }, []);
 
   const uniqueCompanies = useMemo(

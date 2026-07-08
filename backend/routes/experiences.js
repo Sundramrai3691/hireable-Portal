@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const authMiddleware = require("../middleware/auth");
 const Experience = require("../models/Experience");
 const { buildDateCursorPageQuery, buildPage } = require("../utils/cursorPagination");

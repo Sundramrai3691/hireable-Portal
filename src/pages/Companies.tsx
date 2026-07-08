@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, Building2, Filter, Plus } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertCircle, Building2, Filter, Loader2, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import CompanyLogo from "@/components/CompanyLogo";
 import EmptyState from "@/components/EmptyState";
@@ -9,6 +9,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient, Job } from "@/lib/api";
 import { BRANCH_OPTIONS, TOPIC_OPTIONS, getEligibility } from "@/lib/placemate";
+
+const DRIVE_MONTH_OPTIONS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 export default function Companies() {
   const { isAuthenticated, user } = useAuth();
@@ -23,13 +38,60 @@ export default function Companies() {
   const [difficulty, setDifficulty] = useState("all");
   const [showOnlyEligible, setShowOnlyEligible] = useState(Boolean(user?.studentProfile));
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+
+  const loadJobs = useCallback(
+    async (cursor?: string | null) => {
+      if (cursor) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+      }
+
+      try {
+        const response = await apiClient.getJobs({
+          limit: 20,
+          cursor,
+          search,
+          branch: selectedBranches.join(","),
+          maxCgpa: maxCutoff,
+          driveType,
+          month,
+          topic,
+          difficulty,
+        });
+
+        setJobs((prev) => {
+          if (!cursor) {
+            return response.data;
+          }
+          const existingIds = new Set(prev.map((job) => job.id));
+          return [...prev, ...response.data.filter((job) => !existingIds.has(job.id))];
+        });
+        setNextCursor(response.nextCursor);
+        setHasMore(response.hasMore);
+      } catch (error) {
+        toast({
+          title: "Could not load company drives",
+          description: error instanceof Error ? error.message : "Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [difficulty, driveType, maxCutoff, month, search, selectedBranches, toast, topic],
+  );
 
   useEffect(() => {
-    apiClient.getJobs().then(setJobs).finally(() => setIsLoading(false));
-  }, []);
+    loadJobs(null);
+  }, [loadJobs]);
 
   const months = useMemo(
-    () => Array.from(new Set(jobs.map((job) => job.expectedDriveMonth).filter(Boolean))),
+    () => Array.from(new Set([...DRIVE_MONTH_OPTIONS, ...jobs.map((job) => job.expectedDriveMonth).filter(Boolean)])),
     [jobs],
   );
   const profile = user?.studentProfile;
@@ -202,63 +264,73 @@ export default function Companies() {
             {isLoading ? (
               <div className="text-center text-slate-300">Loading company drives...</div>
             ) : filteredJobs.length ? (
-              <div className="grid gap-6 md:grid-cols-2">
-                {filteredJobs.map((job) => {
-                  const eligibility = getEligibility(job, profile);
-                  return (
-                    <div key={job.id} className="card p-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex gap-4">
-                          <CompanyLogo name={job.company} logoUrl={job.companyLogo} />
-                          <div>
-                            <h2 className="text-xl font-semibold text-white">{job.company}</h2>
-                            <p className="text-sm text-slate-300">{job.title}</p>
+              <>
+                <div className="grid gap-6 md:grid-cols-2">
+                  {filteredJobs.map((job) => {
+                    const eligibility = getEligibility(job, profile);
+                    return (
+                      <div key={job.id} className="card p-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex gap-4">
+                            <CompanyLogo name={job.company} logoUrl={job.companyLogo} />
+                            <div>
+                              <h2 className="text-xl font-semibold text-white">{job.company}</h2>
+                              <p className="text-sm text-slate-300">{job.title}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-mono text-sm text-blue-200">
+                              {job.ctcRange?.min && job.ctcRange?.max ? `${job.ctcRange.min}-${job.ctcRange.max} LPA` : job.salary}
+                            </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-mono text-sm text-blue-200">
-                            {job.ctcRange?.min && job.ctcRange?.max ? `${job.ctcRange.min}-${job.ctcRange.max} LPA` : job.salary}
-                          </p>
+
+                        <div className="mt-5 flex flex-wrap items-center gap-3">
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                              eligibility.tone === "success"
+                                ? "border border-emerald-400/20 bg-emerald-500/12 text-emerald-200"
+                                : eligibility.tone === "warning"
+                                ? "border border-amber-400/20 bg-amber-500/12 text-amber-200"
+                                : "border border-rose-400/20 bg-rose-500/12 text-rose-200"
+                            }`}
+                          >
+                            {eligibility.reason}
+                          </span>
+                          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+                            {job.expectedDriveMonth || "Drive month TBD"}
+                          </span>
+                        </div>
+
+                        <div className="mt-5 grid gap-3 text-sm text-slate-400">
+                          <p>Branches: {job.allowsAllBranches ? "All branches" : job.eligibleBranches.join(", ")}</p>
+                          <p>CGPA: {job.minCGPA}+</p>
+                          <p>Rounds: {job.typicalRounds.join(" -> ")}</p>
+                          <p>Topics: {job.topicsAsked.join(", ")}</p>
+                        </div>
+
+                        <div className="mt-6 flex flex-wrap gap-3">
+                          <Button variant="outline" asChild>
+                            <Link to={`/experiences?company=${encodeURIComponent(job.company)}`}>View Experiences</Link>
+                          </Button>
+                          <Button onClick={() => addToTracker(job)}>
+                            <Plus className="h-4 w-4" />
+                            Add to Tracker
+                          </Button>
                         </div>
                       </div>
-
-                      <div className="mt-5 flex flex-wrap items-center gap-3">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-medium ${
-                            eligibility.tone === "success"
-                              ? "border border-emerald-400/20 bg-emerald-500/12 text-emerald-200"
-                              : eligibility.tone === "warning"
-                              ? "border border-amber-400/20 bg-amber-500/12 text-amber-200"
-                              : "border border-rose-400/20 bg-rose-500/12 text-rose-200"
-                          }`}
-                        >
-                          {eligibility.reason}
-                        </span>
-                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-                          {job.expectedDriveMonth || "Drive month TBD"}
-                        </span>
-                      </div>
-
-                      <div className="mt-5 grid gap-3 text-sm text-slate-400">
-                        <p>Branches: {job.allowsAllBranches ? "All branches" : job.eligibleBranches.join(", ")}</p>
-                        <p>CGPA: {job.minCGPA}+</p>
-                        <p>Rounds: {job.typicalRounds.join(" -> ")}</p>
-                        <p>Topics: {job.topicsAsked.join(", ")}</p>
-                      </div>
-
-                      <div className="mt-6 flex flex-wrap gap-3">
-                        <Button variant="outline" asChild>
-                          <Link to={`/experiences?company=${encodeURIComponent(job.company)}`}>View Experiences</Link>
-                        </Button>
-                        <Button onClick={() => addToTracker(job)}>
-                          <Plus className="h-4 w-4" />
-                          Add to Tracker
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+                {hasMore ? (
+                  <div className="mt-6 flex justify-center">
+                    <Button variant="outline" onClick={() => loadJobs(nextCursor)} disabled={isLoadingMore || !nextCursor}>
+                      {isLoadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                      Load more
+                    </Button>
+                  </div>
+                ) : null}
+              </>
             ) : (
               <EmptyState
                 icon={AlertCircle}
